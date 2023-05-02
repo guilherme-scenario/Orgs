@@ -2,12 +2,13 @@ package com.gvfs.orgs.ui.recyclerview.adapter
 
 import android.content.Context
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-import com.gvfs.orgs.R
+import com.gvfs.orgs.databinding.ProdutoItemBinding
 import com.gvfs.orgs.model.Produto
+import java.math.BigDecimal
+import java.text.NumberFormat
+import java.util.Locale
 
 class ListaProdutosAdapter (
     private val context: Context,
@@ -16,22 +17,28 @@ class ListaProdutosAdapter (
 
     private val produtos = produtos.toMutableList()
 
-    class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+    class ViewHolder(private val binding: ProdutoItemBinding) : RecyclerView.ViewHolder(binding.root) {
         fun vincula(produto: Produto) {
-            val nome = itemView.findViewById<TextView>(R.id.produto_item_nome)
+            val nome = binding.produtoItemNome
             nome.text = produto.nome
-            val descricao = itemView.findViewById<TextView>(R.id.produto_item_descricao)
-            descricao.text = produto.nome
-            val valor = itemView.findViewById<TextView>(R.id.produto_item_valor)
-            valor.text = produto.valor.toPlainString()
+            val descricao = binding.produtoItemDescricao
+            descricao.text = produto.descricao
+            val valor = binding.produtoItemValor
+            val valorEmMoeda: String = formataParaRealBrasileiro(produto.valor)
+            valor.text = valorEmMoeda
+        }
+
+        private fun formataParaRealBrasileiro(valor: BigDecimal): String {
+            val formatador = NumberFormat.getCurrencyInstance(Locale("pt", "br"))
+            return formatador.format(valor)
         }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val inflater = LayoutInflater.from(context)
-        val view = inflater.inflate(R.layout.produto_item, parent, false)
+        val binding = ProdutoItemBinding.inflate(inflater, parent, false)
 
-        return ViewHolder(view)
+        return ViewHolder(binding)
     }
 
     override fun getItemCount(): Int = produtos.size
