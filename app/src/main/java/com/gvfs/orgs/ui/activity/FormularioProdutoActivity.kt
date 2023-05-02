@@ -4,11 +4,16 @@ import android.os.Bundle
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import coil.load
 import com.gvfs.orgs.R
 import com.gvfs.orgs.dao.ProdutosDao
 import com.gvfs.orgs.databinding.ActivityFormularioProdutoBinding
+import com.gvfs.orgs.databinding.FormularioImagemBinding
+import com.gvfs.orgs.extensions.tentaCarregarImagem
 import com.gvfs.orgs.model.Produto
+import com.gvfs.orgs.ui.dialog.FormularioImagemDialog
 import java.math.BigDecimal
 
 class FormularioProdutoActivity : AppCompatActivity(R.layout.activity_formulario_produto) {
@@ -18,10 +23,20 @@ class FormularioProdutoActivity : AppCompatActivity(R.layout.activity_formulario
         ActivityFormularioProdutoBinding.inflate(layoutInflater)
     }
 
+    private var url :String? = null
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
+        title = "Cadastrar produto"
         configuraBotaoSalvar()
+        binding.activityFormularioProdutoImagem.setOnClickListener {
+            FormularioImagemDialog(this).mostraDialog(url) { imagem ->
+                url = imagem
+                binding.activityFormularioProdutoImagem.tentaCarregarImagem(url)
+            }
+        }
     }
 
     private fun configuraBotaoSalvar() {
@@ -54,7 +69,8 @@ class FormularioProdutoActivity : AppCompatActivity(R.layout.activity_formulario
         return Produto(
             nome = nome,
             descricao = descricao,
-            valor = valor
+            valor = valor,
+            imagem = url
         )
     }
 
