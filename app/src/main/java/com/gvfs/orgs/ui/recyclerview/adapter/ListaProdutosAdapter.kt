@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.gvfs.orgs.databinding.ProdutoItemBinding
+import com.gvfs.orgs.extensions.formataParaMoedaBrasileira
 import com.gvfs.orgs.extensions.tentaCarregarImagem
 import com.gvfs.orgs.model.Produto
 import com.gvfs.orgs.ui.activity.ListaProdutosActivity
@@ -15,20 +16,29 @@ import java.util.Locale
 
 class ListaProdutosAdapter(
     private val context: Context,
-    produtos: List<Produto>,//proteger => manter a lista imutável no construtor
-    var onItemClick: ((Produto) -> Unit)
-        ): RecyclerView.Adapter<ListaProdutosAdapter.ViewHolder>() {
+    produtos: List<Produto>,
+    var quandoClicaNoItem: (produto: Produto) -> Unit = {}
+) : RecyclerView.Adapter<ListaProdutosAdapter.ViewHolder>() {
 
     private val produtos = produtos.toMutableList()
 
-    class ViewHolder(private val binding: ProdutoItemBinding) : RecyclerView.ViewHolder(binding.root) {
+    inner class ViewHolder(private val binding: ProdutoItemBinding) : RecyclerView.ViewHolder(binding.root) {
+
+        private lateinit var produto: Produto
+        init {
+            itemView.setOnClickListener {
+                if (::produto.isInitialized) {
+                    quandoClicaNoItem(produto)
+                }
+            }
+        }
         fun vincula(produto: Produto) {
             val nome = binding.produtoItemNome
             nome.text = produto.nome
             val descricao = binding.produtoItemDescricao
             descricao.text = produto.descricao
             val valor = binding.produtoItemValor
-            val valorEmMoeda: String = formataParaRealBrasileiro(produto.valor)
+            val valorEmMoeda: String = produto.valor.formataParaMoedaBrasileira();
             valor.text = valorEmMoeda
 
             val visibilidade = if (produto.imagem != null) {
@@ -45,10 +55,6 @@ class ListaProdutosAdapter(
             binding.imageView.tentaCarregarImagem(produto.imagem)
         }
 
-        private fun formataParaRealBrasileiro(valor: BigDecimal): String {
-            val formatador = NumberFormat.getCurrencyInstance(Locale("pt", "br"))
-            return formatador.format(valor)
-        }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -63,7 +69,9 @@ class ListaProdutosAdapter(
     override fun onBindViewHolder(holder: ListaProdutosAdapter.ViewHolder, position: Int) {
         val produto = produtos[position]
         holder.vincula(produto)
-        holder.itemView.setOnClickListener { onItemClick(produto) }
+        holder.itemView.setOnClickListener {
+            quandoClicaNoItem(produto)
+        }
     }
 
     fun atualiza(produtos: List<Produto>) {
